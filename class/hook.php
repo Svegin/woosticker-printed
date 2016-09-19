@@ -45,6 +45,7 @@ class wooStickerHooks {
     	delete_option( 'new_product_settings' );
     	delete_option( 'sale_product_settings' );
     	delete_option( 'sold_product_settings' );
+    	delete_option( 'print_product_settings' );
     }
     
     public function upgradeTo102() {
@@ -75,6 +76,11 @@ class wooStickerHooks {
     	$sold_product_settings['sold_product_position'] = 'left';
     	$sold_product_settings['sold_product_custom_sticker'] = '';
     	update_option('sold_product_settings', $sold_product_settings);
+    	
+    	$print_product_settings = ( array ) get_option ( 'print_product_settings' );
+    	$print_product_settings['print_product_position'] = 'left';
+    	$print_product_settings['print_product_custom_sticker'] = '';
+    	update_option('print_product_settings', $print_product_settings);
     	
     	$this->update_version('1.0.3');
     	 

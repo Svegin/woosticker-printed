@@ -102,6 +102,53 @@ class wooStickerView {
 				'wli_woocommerce_show_product_loop_sale_badge_remove'
 					), 11, 3 );												
 			}
+			
+			
+			/**
+			 * Filter added for resolving bug of print product
+			 * not display.
+			 * v 1.0.4 jenilk
+			 * */
+			if(ENABLE_PRINT_PRODUCT == "yes")
+			{				
+				if (ENABLE_STICKER_LISTING == "yes") {											
+					add_filter ( 'woocommerce_before_shop_loop_item_title', array (
+					 $this,
+					 'wli_woocommerce_show_product_loop_print_badge'
+					), 11, 3 );
+				} else {
+					add_filter ( 'woocommerce_sale_flash', array (
+					$this,
+					'wli_woocommerce_show_product_loop_sale_badge_remove'
+						), 11, 3 );
+				}
+				if (ENABLE_STICKER_DETAIL == "yes") {
+					remove_action ( 'woocommerce_before_single_product_summary', array (
+					$this,
+					'wli_woocommerce_show_product_loop_sale_badge'
+						), 30 );
+						add_filter ( 'woocommerce_before_single_product_summary', array (
+						$this,
+						'wli_woocommerce_show_product_loop_print_badge'
+							), 11, 3 );
+				} else {
+					add_filter ( 'woocommerce_before_single_product_summary', array (
+					$this,
+					'wli_woocommerce_show_product_loop_sale_badge_remove'
+						), 11, 3 );
+					remove_action ( 'woocommerce_before_shop_loop_item_title', array (
+					$this,
+					'wli_woocommerce_show_product_loop_print_badge'
+						), 30 );						
+				}
+				
+			}
+			else {
+				add_filter ( 'woocommerce_sale_flash', array (
+				$this,
+				'wli_woocommerce_show_product_loop_sale_badge_remove'
+					), 11, 3 );												
+			}
 		} 
 	}
 	
@@ -138,10 +185,13 @@ class wooStickerView {
 	function wli_woocommerce_show_product_loop_sale_badge() {
 		global $product;		
 		$classSalePosition=((SALE_PRODUCT_POSITION=='left') ? ((is_product())? " pos_left_detail " : " pos_left " ) : ((is_product())? " pos_right_detail " : " pos_right "));				
-		$classSoldPosition=((SOLD_PRODUCT_POSITION=='left') ? ((is_product())? " pos_left_detail " : " pos_left " ) : ((is_product())? " pos_right_detail " : " pos_right "));	
+		$classSoldPosition=((SOLD_PRODUCT_POSITION=='left') ? ((is_product())? " pos_left_detail " : " pos_left " ) : ((is_product())? " pos_right_detail " : " pos_right "));
+		$classPrintPosition=((PRINT_PRODUCT_POSITION=='left') ? ((is_product())? " pos_left_detail " : " pos_left " ) : ((is_product())? " pos_right_detail " : " pos_right "));	
 		$classSale = ((SALE_PRODUCT_CUSTOM_STICKER=='')?((ENABLE_SALE_PRODUCT_STYLE == "ribbon") ? ((SALE_PRODUCT_POSITION=='left')?" woosticker onsale_ribbon_left ":" woosticker onsale_ribbon_right ") : ((SALE_PRODUCT_POSITION=='left')?" woosticker onsale_round_left ":" woosticker onsale_round_right ")):"custom_sticker_image");
 		//$classSold= (empty(SOLD_PRODUCT_CUSTOM_STICKER)?(ENABLE_SOLD_PRODUCT_STYLE == "ribbon") ? "woosticker soldout_ribbon" : "woosticker soldout_round":"custom_sticker_image");
 		$classSold=((SOLD_PRODUCT_CUSTOM_STICKER=='')?((ENABLE_SOLD_PRODUCT_STYLE == "ribbon") ? ((SOLD_PRODUCT_POSITION=='left')?" woosticker soldout_ribbon_left ":" woosticker soldout_ribbon_right ") : ((SOLD_PRODUCT_POSITION=='left')?" woosticker soldout_round_left ":" woosticker soldout_round_right ")):"custom_sticker_image");
+		//$classPrint= (empty(PRINT_PRODUCT_CUSTOM_STICKER)?(ENABLE_PRINT_PRODUCT_STYLE == "ribbon") ? "woosticker print_ribbon" : "woosticker soldout_round":"custom_sticker_image");
+		$classPrint=((PRINT_PRODUCT_CUSTOM_STICKER=='')?((ENABLE_PRINT_PRODUCT_STYLE == "ribbon") ? ((PRINT_PRODUCT_POSITION=='left')?" woosticker print_ribbon_left ":" woosticker print_ribbon_right ") : ((PRINT_PRODUCT_POSITION=='left')?" woosticker print_round_left ":" woosticker print_round_right ")):"custom_sticker_image");
 		
 		if (! $product->is_in_stock ()) {
 			if(ENABLE_SOLD_PRODUCT=="yes")
@@ -178,6 +228,31 @@ class wooStickerView {
 					echo '<span class="' . $classSold . $classSoldPosition . '" style="background-image:url('.SOLD_PRODUCT_CUSTOM_STICKER.'); color:transparent;"> Sold Out </span>';
 				else
 					echo '<span class="'.$classSold . $classSoldPosition .'">Sold Out</span>';
+			}
+		}
+	}
+	
+	
+	/**
+	 * Call back function for show print product badge.
+	 *
+	 * @return void
+	 * @var No arguments passed
+	 * @author Weblineindia
+	 */
+	function wli_woocommerce_show_product_loop_print_badge()
+	{
+		global $product;
+		
+		$classPrintPosition=((PRINT_PRODUCT_POSITION=='left') ? ((is_product())? " pos_left_detail " : " pos_left " ) : ((is_product())? " pos_right_detail " : " pos_right "));
+		$classPrint=((PRINT_PRODUCT_CUSTOM_STICKER=='')?((ENABLE_PRINT_PRODUCT_STYLE == "ribbon") ? ((PRINT_PRODUCT_POSITION=='left')?" woosticker print_ribbon_left ":" woosticker print_ribbon_right ") : ((PRINT_PRODUCT_POSITION=='left')?" woosticker print_round_left ":" woosticker print_round_right ")):"custom_sticker_image");
+		if (! $product->is_in_stock ()) {
+			if(ENABLE_PRINT_PRODUCT=="yes")
+			{
+				if($classPrint=="custom_sticker_image")
+					echo '<span class="' . $classPrint . $classPrintPosition . '" style="background-image:url('.PRINT_PRODUCT_CUSTOM_STICKER.'); color:transparent;"> Printed </span>';
+				else
+					echo '<span class="'.$classPrint . $classPrintPosition .'">Printed</span>';
 			}
 		}
 	}
