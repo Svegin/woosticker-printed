@@ -19,6 +19,7 @@ class wooStickerMenu {
 	private $new_product_settings_key = 'new_product_settings';
 	private $sale_product_settings_key = 'sale_product_settings';
 	private $sold_product_settings_key = 'sold_product_settings';
+	private $print_product_settings_key = 'print_product_settings';
 	private $plugin_options_key = 'wli-stickers';
 	private $plugin_settings_tabs = array ();
 	public function __construct() {
@@ -36,8 +37,12 @@ class wooStickerMenu {
 				'register_sale_product_settings' 
 		) );
 		add_action ( 'admin_init', array (
-		&$this,
+				&$this,
 				'register_sold_product_settings'
+		) );
+		add_action ( 'admin_init', array (
+				&$this,
+				'register_print_product_settings'
 		) );
 		add_action ( 'admin_menu', array (
 				&$this,
@@ -65,6 +70,7 @@ class wooStickerMenu {
 		$this->new_product_settings = ( array ) get_option ( $this->new_product_settings_key );
 		$this->sale_product_settings = ( array ) get_option ( $this->sale_product_settings_key );
 		$this->sold_product_settings = ( array ) get_option ( $this->sold_product_settings_key );
+		$this->print_product_settings = ( array ) get_option ( $this->print_product_settings_key );
 		// Merge with defaults
 		$this->general_settings = array_merge ( array (
 				'enable_sticker' => 'no',
@@ -93,6 +99,13 @@ class wooStickerMenu {
 				'sold_product_position' => 'left',
 				'sold_product_custom_sticker' => ''
 		), $this->sold_product_settings );
+
+		$this->print_product_settings = array_merge ( array (
+				'enable_print_product_sticker' => 'no',
+				'enable_print_product_style' => 'ribbon',
+				'print_product_position' => 'left',
+				'print_product_custom_sticker' => ''
+		), $this->sold_product_settings );
 		
 		define ( "ENABLE_STICKER", $this->general_settings ['enable_sticker'] );
 		define ( "ENABLE_STICKER_LISTING", $this->general_settings ['enable_sticker_list'] );
@@ -109,7 +122,10 @@ class wooStickerMenu {
 		define ( "SALE_PRODUCT_POSITION", $this->sale_product_settings ['sale_product_position'] );
 		define ( "ENABLE_SOLD_PRODUCT_STYLE", $this->sold_product_settings ['enable_sold_product_style']);
 		define ( "SOLD_PRODUCT_CUSTOM_STICKER", $this->sold_product_settings ['sold_product_custom_sticker'] );
-		define ( "SOLD_PRODUCT_POSITION", $this->sold_product_settings ['sold_product_position'] );						
+		define ( "SOLD_PRODUCT_POSITION", $this->sold_product_settings ['sold_product_position'] );	
+		define ( "ENABLE_PRINT_PRODUCT_STYLE", $this->print_product_settings ['enable_print_product_style']);
+		define ( "PRINT_PRODUCT_CUSTOM_STICKER", $this->print_product_settings ['print_product_custom_sticker'] );
+		define ( "PRINT_PRODUCT_POSITION", $this->print_product_settings ['print_product_position'] );						
 	}
 	/**
 	 * Registers the general settings via the Settings API,
@@ -269,6 +285,45 @@ class wooStickerMenu {
 		'sold_product_custom_sticker'
 			), $this->sold_product_settings_key, 'section_sold_product' );
 	}
+	
+	/**
+	 * Registers the Print Product settings via the Settings API,
+	 * appends the setting to the tabs array of the object.
+	 * Tab Name will defined here.
+	 *
+	 * @return void
+	 * @var No arguments passed
+	 * @author Weblineindia
+	 */
+	function register_print_product_settings() {
+		$this->plugin_settings_tabs [$this->print_product_settings_key] = 'Print Products';
+	
+		register_setting ( $this->print_product_settings_key, $this->print_product_settings_key );
+		add_settings_section ( 'section_print_product', 'Sticker Configurations for Printed Products', array (
+		&$this,
+		'section_print_product_desc'
+				), $this->print_product_settings_key );
+	
+		add_settings_field ( 'enable_print_product_sticker', 'Enable Product Sticker:', array (
+		&$this,
+		'enable_print_product_sticker'
+				), $this->print_product_settings_key, 'section_print_product' );
+		
+		add_settings_field ( 'print_product_position', 'Product Sticker Position:', array (
+		&$this,
+		'print_product_position'
+			), $this->print_product_settings_key, 'section_print_product' );
+		
+		add_settings_field ( 'enable_print_product_style', 'Enable Sticker On Printed Product:', array (
+		&$this,
+		'enable_print_product_style'
+				), $this->print_product_settings_key, 'section_print_product' );
+		
+		add_settings_field ( 'print_product_custom_sticker', 'Add your custom sticker:', array (
+		&$this,
+		'sold_product_custom_sticker'
+			), $this->print_product_settings_key, 'section_print_product' );
+	}
 	/**
 	 * The following methods provide descriptions
 	 * for their respective sections, used as callbacks
@@ -285,6 +340,8 @@ class wooStickerMenu {
 	function section_sale_product_desc() {		
 	}
 	function section_sold_product_desc() {		
+	}
+	function section_print_product_desc() {		
 	}
 	
 	/**
@@ -377,7 +434,7 @@ class wooStickerMenu {
 		?>
 		<input type="text" id="new_product_sticker_days" name="<?php echo $this->new_product_settings_key;?>[new_product_sticker_days]" value="<?php echo $this->new_product_settings['new_product_sticker_days']?>" />
 
-<p class="description">Specify the No of days before to be disaplay product as New (Default 10 days).</p>
+<p class="description">Specify the No of days before to be display product as New (Default 10 days).</p>
 <?php
 	}
 	
@@ -647,6 +704,106 @@ class wooStickerMenu {
 						<button class="remove_img_btn button">Remove Image</button>								
 					'.$this->custom_sticker_script('sold_product_custom_sticker'); ?>			
 			<p class="description">Add your own custom sold product image instead of WooStickers default.</p>
+			<?php
+		}
+		
+		
+	/**
+	 * Print Product Settings :: Enable Stickers
+	 *
+	 * @return void
+	 * @var No arguments passed
+	 * @author Weblineindia
+	 */
+	function enable_print_product_sticker() {
+		?>
+	<select id='enable_print_product_sticker'
+		name="<?php echo $this->print_product_settings_key; ?>[enable_print_product_sticker]">
+		<option value='yes'
+			<?php selected( $this->print_product_settings['enable_print_product_sticker'], 'yes',true );?>>Yes</option>
+		<option value='no'
+			<?php selected( $this->print_product_settings['enable_print_product_sticker'], 'no',true );?>>No</option>
+	</select>
+	<p class="description">Control sticker display for products which are marked as under print in wooCommerce.</p>
+	<?php
+		}
+		/**
+		 * Print Product Settings :: Display style On Print Product
+		 *
+		 * @return void
+		 * @var No arguments passed
+		 * @author Weblineindia
+		 */
+		function enable_print_product_style() {
+			?>
+	<select id='enable_print_product_style'
+		name="<?php echo $this->print_product_settings_key; ?>[enable_print_product_style]">
+		<option value='ribbon'
+			<?php selected( $this->print_product_settings['enable_print_product_style'], 'ribbon',true );?>>Ribbon</option>
+		<option value='round'
+			<?php selected( $this->print_product_settings['enable_print_product_style'], 'round',true );?>>Round</option>
+	</select>
+	<p class="description">Select sticker type to show on Products under print.</p>
+	<?php
+		}
+	/**
+	 * Print Product Settings :: Sticker Position
+	 *
+	 * @return void
+	 * @var No arguments passed
+	 * @author Weblineindia
+	 */
+	function print_product_position() {
+		?>
+		<select id='print_product_position'
+			name="<?php echo $this->print_product_settings_key; ?>[print_product_position]">
+			<option value='left'
+				<?php selected( $this->print_product_settings['print_product_position'], 'left',true );?>>Left</option>
+			<option value='right'
+				<?php selected( $this->print_product_settings['print_product_position'], 'right',true );?>>Right</option>
+		</select>
+		<p class="description">Select the position of the sticker.</p>
+		<?php
+			}
+	/**
+	 * Print Product Settings :: Custom Stickers for Print Products
+	 *
+	 * @return void
+	 * @var No arguments passed
+	 * @author Weblineindia
+	 */
+	function print_product_custom_sticker() {
+	
+		?>
+				
+			<?php
+			if (get_bloginfo('version') >= 3.5)
+				wp_enqueue_media();
+			else {
+				wp_enqueue_style('thickbox');
+				wp_enqueue_script('thickbox');
+			}
+			//print_r(CV_DEFAULT_IMAGE); die;	
+			if (PRINT_PRODUCT_CUSTOM_STICKER == '')
+				$image_url = "";
+			else
+				$image_url = PRINT_PRODUCT_CUSTOM_STICKER;
+			if (PRINT_PRODUCT_CUSTOM_STICKER == '')
+			{
+				$image_url = "";
+				echo '<img class="print_product_custom_sticker" />';
+			}
+			else
+			{
+				$image_url = PRINT_PRODUCT_CUSTOM_STICKER;
+				echo '<img class="print_product_custom_sticker" src="'.$image_url.'" width="125px" height="auto" />';
+			}
+			echo '		<br/>
+						<input type="hidden" name="'.$this->print_product_settings_key .'[print_product_custom_sticker]" id="print_product_custom_sticker" value="'.$image_url.'" />
+						<button class="upload_img_btn button">Upload Image</button>
+						<button class="remove_img_btn button">Remove Image</button>								
+					'.$this->custom_sticker_script('print_product_custom_sticker'); ?>			
+			<p class="description">Add your own custom print product image instead of WooStickers default.</p>
 			<?php
 		}
 	
