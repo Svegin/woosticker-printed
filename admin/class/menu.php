@@ -105,7 +105,7 @@ class wooStickerMenu {
 				'enable_print_product_style' => 'ribbon',
 				'print_product_position' => 'left',
 				'print_product_custom_sticker' => ''
-		), $this->sold_product_settings );
+		), $this->print_product_settings );
 		
 		define ( "ENABLE_STICKER", $this->general_settings ['enable_sticker'] );
 		define ( "ENABLE_STICKER_LISTING", $this->general_settings ['enable_sticker_list'] );
